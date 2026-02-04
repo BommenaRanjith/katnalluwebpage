@@ -2,185 +2,236 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Katnallu Dashboard</title>
+  <title>Katnallu – Celebrate Together 🎉</title>
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Supabase JS -->
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .party-card {
+      padding: 22px;
+      border-radius: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      transition: all 0.25s ease;
+    }
+    .party-card:hover {
+      transform: scale(1.06);
+    }
+  </style>
 </head>
 
-<body class="bg-gray-50 p-6">
+<body class="bg-gradient-to-br from-pink-100 to-yellow-100 min-h-screen flex items-center justify-center p-6">
 
-  <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-md">
+  <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8">
 
-    <h1 class="text-2xl font-bold text-orange-600 mb-6">
-      Katnallu Registry Builder
+    <!-- HEADER -->
+    <h1 class="text-3xl font-extrabold text-center text-pink-600 mb-6">
+      🎉 Katnallu
     </h1>
 
     <!-- LOGIN SECTION -->
     <div id="authSection" class="space-y-4">
+      <p class="text-center text-gray-500">
+        Login to create your celebration page
+      </p>
+
       <input id="email" type="email" placeholder="Email"
-        class="w-full p-2 border rounded" />
+        class="w-full p-3 border rounded-xl" />
 
       <input id="password" type="password" placeholder="Password"
-        class="w-full p-2 border rounded" />
+        class="w-full p-3 border rounded-xl" />
 
       <button onclick="handleLogin()"
-        class="w-full bg-orange-600 text-white py-2 rounded">
+        class="w-full bg-pink-600 text-white py-3 rounded-xl font-bold">
         Login / Sign Up
       </button>
     </div>
 
-    <!-- DASHBOARD SECTION -->
+    <!-- OCCASION SELECTION -->
+    <div id="occasionSection" class="hidden text-center space-y-6">
+
+      <h2 class="text-2xl font-extrabold text-purple-600">
+        🎊 What’s the Occasion?
+      </h2>
+
+      <div class="grid grid-cols-2 gap-4">
+
+        <button onclick="selectOccasion('Wedding')"
+          class="party-card bg-pink-200">💍 Wedding</button>
+
+        <button onclick="selectOccasion('Birthday')"
+          class="party-card bg-yellow-200">🎂 Birthday</button>
+
+        <button onclick="selectOccasion('Housewarming')"
+          class="party-card bg-green-200">🏠 House Warming</button>
+
+        <button onclick="selectOccasion('Baby Shower')"
+          class="party-card bg-blue-200">👶 Baby Shower</button>
+
+      </div>
+    </div>
+
+    <!-- FORM SECTION -->
     <div id="formSection" class="hidden space-y-4">
 
+      <h2 id="occasionTitle"
+        class="text-2xl font-bold text-center text-purple-600"></h2>
+
       <input id="eventName" type="text"
-        placeholder="Event Name (e.g. My Wedding)"
-        class="w-full p-2 border rounded" />
+        placeholder="Event Name"
+        class="w-full p-3 border rounded-xl" />
 
       <input id="eventDate" type="date"
-        class="w-full p-2 border rounded" />
+        class="w-full p-3 border rounded-xl" />
 
       <input id="upiId" type="text"
-        placeholder="UPI ID (e.g. name@upi)"
-        class="w-full p-2 border rounded" />
+        placeholder="UPI ID (name@upi)"
+        class="w-full p-3 border rounded-xl" />
 
       <div>
-        <label class="font-bold text-sm">Gifts You Want</label>
+        <label class="font-bold text-sm">🎁 Gifts You Want</label>
         <div id="giftInputs" class="space-y-2 mt-2">
           <input type="text"
-            class="gift-item w-full p-2 border rounded"
-            placeholder="Gift Name" />
+            class="gift-item w-full p-3 border rounded-xl"
+            placeholder="Gift name" />
         </div>
 
         <button onclick="addGiftField()"
-          class="text-orange-600 text-sm mt-2">
+          class="text-pink-600 text-sm mt-2">
           + Add Another Gift
         </button>
       </div>
 
       <button onclick="saveData()"
-        class="w-full bg-green-600 text-white py-3 rounded font-bold">
-        Save & Publish
+        class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">
+        Save & Publish 🎉
       </button>
 
       <div id="linkArea"
-        class="hidden mt-4 p-3 bg-green-100 border border-green-300 rounded">
-      </div>
+        class="hidden bg-green-100 border border-green-300 p-3 rounded-xl text-center"></div>
 
     </div>
+
   </div>
 
   <script>
-    /* =============================
+    /* =====================
        SUPABASE CONFIG
-    ============================== */
+    ====================== */
 
     const SUPABASE_URL = "https://jdzewrfwsrtcemjwxqru.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_eu57uL_OJcWJHYKdYud4Lg_YTdlmlo-";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
 
     const supabaseClient = supabase.createClient(
       SUPABASE_URL,
       SUPABASE_ANON_KEY
     );
 
-    /* =============================
-       AUTH LOGIN / SIGNUP
-    ============================== */
+    let selectedOccasion = "";
+
+    /* =====================
+       AUTH
+    ====================== */
 
     async function handleLogin() {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = emailInput();
+      const password = passwordInput();
 
-      // Try signup first
-      const { error } = await supabaseClient.auth.signUp({
-        email,
-        password
-      });
+      const { error } = await supabaseClient.auth.signUp({ email, password });
 
-      // If already exists → login
       if (error && error.message.includes("already")) {
         const { error: loginError } =
-          await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-          });
-
-        if (loginError) {
-          alert(loginError.message);
-          return;
-        }
+          await supabaseClient.auth.signInWithPassword({ email, password });
+        if (loginError) return alert(loginError.message);
       } else if (error) {
-        alert(error.message);
-        return;
+        return alert(error.message);
       }
 
-      showDashboard();
+      showOccasions();
     }
 
-    function showDashboard() {
-      document.getElementById("authSection").classList.add("hidden");
-      document.getElementById("formSection").classList.remove("hidden");
+    function showOccasions() {
+      hide("authSection");
+      show("occasionSection");
     }
 
-    /* =============================
-       GIFT INPUTS
-    ============================== */
+    /* =====================
+       OCCASION
+    ====================== */
+
+    function selectOccasion(type) {
+      selectedOccasion = type;
+      hide("occasionSection");
+      show("formSection");
+
+      document.getElementById("occasionTitle").innerText =
+        "🎉 " + type + " Celebration";
+
+      if (type === "Wedding")
+        eventName().value = "Our Wedding";
+      if (type === "Birthday")
+        eventName().value = "My Birthday Party";
+    }
+
+    /* =====================
+       GIFTS
+    ====================== */
 
     function addGiftField() {
       const input = document.createElement("input");
-      input.className = "gift-item w-full p-2 border rounded";
-      input.placeholder = "Gift Name";
+      input.className = "gift-item w-full p-3 border rounded-xl";
+      input.placeholder = "Gift name";
       document.getElementById("giftInputs").appendChild(input);
     }
 
-    /* =============================
+    /* =====================
        SAVE DATA
-    ============================== */
+    ====================== */
 
     async function saveData() {
-      const gifts = Array.from(
-        document.querySelectorAll(".gift-item")
-      )
-        .map(i => i.value)
-        .filter(v => v);
+      const gifts = Array.from(document.querySelectorAll(".gift-item"))
+        .map(i => i.value).filter(v => v);
 
-      const { data } = await supabaseClient.auth.getUser();
-      const user = data.user;
+      const user = (await supabaseClient.auth.getUser()).data.user;
+      if (!user) return alert("Not logged in");
 
-      if (!user) {
-        alert("Not logged in");
-        return;
-      }
+      const { error } = await supabaseClient.from("registries").insert({
+        user_id: user.id,
+        occasion: selectedOccasion,
+        event_name: eventName().value,
+        event_date: eventDate().value,
+        upi_id: upiId().value,
+        gifts_json: gifts
+      });
 
-      const { error } = await supabaseClient
-        .from("registries")
-        .insert({
-          user_id: user.id,
-          event_name: document.getElementById("eventName").value,
-          event_date: document.getElementById("eventDate").value,
-          upi_id: document.getElementById("upiId").value,
-          gifts_json: gifts
-        });
-
-      if (error) {
-        alert(error.message);
-        return;
-      }
+      if (error) return alert(error.message);
 
       const link =
-        window.location.origin +
-        "/view.html?id=" +
-        user.id;
+        window.location.origin + "/view.html?id=" + user.id;
 
       const area = document.getElementById("linkArea");
       area.classList.remove("hidden");
       area.innerHTML =
-        `✅ Success!<br>Share this link:<br>
-         <a href="${link}" class="text-blue-600 underline">${link}</a>`;
+        `🎉 Success!<br>
+         Share this link:<br>
+         <a class="text-blue-600 underline" href="${link}">${link}</a>`;
     }
+
+    /* =====================
+       HELPERS
+    ====================== */
+
+    const emailInput = () => document.getElementById("email").value;
+    const passwordInput = () => document.getElementById("password").value;
+    const eventName = () => document.getElementById("eventName");
+    const eventDate = () => document.getElementById("eventDate");
+    const upiId = () => document.getElementById("upiId");
+    const hide = id => document.getElementById(id).classList.add("hidden");
+    const show = id => document.getElementById(id).classList.remove("hidden");
   </script>
 
 </body>
