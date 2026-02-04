@@ -1,65 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Celebration Registry</title>
+    <title>Katnallu Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-orange-50 min-h-screen flex items-center justify-center p-6">
-
-    <div id="registryContent" class="hidden max-w-lg w-full bg-white p-10 rounded-3xl shadow-2xl text-center border-t-8 border-orange-600">
-        <h1 id="displayEventName" class="text-3xl font-bold text-orange-800 mb-2">Loading...</h1>
-        <p class="text-gray-500 italic mb-8">You are invited to celebrate with us!</p>
+<body class="bg-gray-50 p-6">
+    <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold text-orange-600 mb-6">Katnallu Registry Builder</h1>
         
-        <div class="bg-orange-100 p-6 rounded-xl mb-6">
-            <h3 class="font-bold text-sm uppercase text-orange-600 tracking-widest mb-2">Our Top Wishlist Item</h3>
-            <p id="displayGift" class="text-2xl font-semibold text-gray-800"></p>
+        <div id="authSection" class="space-y-4">
+            <input id="email" type="email" placeholder="Email" class="w-full p-2 border rounded">
+            <input id="password" type="password" placeholder="Password" class="w-full p-2 border rounded">
+            <button onclick="handleLogin()" class="w-full bg-orange-600 text-white py-2 rounded">Login / Sign Up</button>
         </div>
 
-        <a id="upiLink" href="#" class="block w-full bg-orange-600 text-white font-bold py-4 rounded-full shadow-lg hover:bg-orange-700 transition transform hover:scale-105">
-            Send Shagun via UPI
-        </a>
+        <div id="formSection" class="hidden space-y-4">
+            <input id="eventName" type="text" placeholder="Event Name (e.g. My Wedding)" class="w-full p-2 border rounded">
+            <input id="eventDate" type="date" class="w-full p-2 border rounded">
+            <input id="upiId" type="text" placeholder="UPI ID (e.g. name@upi)" class="w-full p-2 border rounded">
+            
+            <div id="giftArea">
+                <label class="font-bold text-sm">Gifts You Want:</label>
+                <div id="giftInputs" class="space-y-2 mt-2">
+                    <input type="text" class="gift-item w-full p-2 border rounded" placeholder="Gift Name">
+                </div>
+                <button onclick="addGiftField()" class="text-orange-600 text-sm mt-2">+ Add Another Gift</button>
+            </div>
+
+            <button onclick="saveData()" class="w-full bg-green-600 text-white py-3 rounded font-bold">Save & Publish</button>
+            <div id="linkArea" class="mt-4 p-3 bg-green-100 hidden rounded border border-green-200"></div>
+        </div>
     </div>
 
-    <div id="loader" class="text-orange-600 font-bold">Finding the Registry...</div>
-
     <script>
-        // Use the same keys from your index.html
-        const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = 'YOUR_URL';
+        const SUPABASE_KEY = 'YOUR_KEY';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function loadRegistry() {
-            // This gets the "id" from the website URL (?id=...)
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('id');
-
-            if (!userId) {
-                document.getElementById('loader').textContent = "No Registry Found.";
-                return;
-            }
-
-            const { data, error } = await supabaseClient
-                .from('registries')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
-            if (data) {
-                document.getElementById('displayEventName').textContent = data.event_name;
-                document.getElementById('displayGift').textContent = data.gift_1;
-                document.getElementById('upiLink').href = `upi://pay?pa=${data.upi_id}&pn=${data.event_name}&cu=INR`;
-                
-                document.getElementById('loader').classList.add('hidden');
-                document.getElementById('registryContent').classList.remove('hidden');
-            } else {
-                document.getElementById('loader').textContent = "Registry not found or private.";
-            }
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                const { error: signUpError } = await supabase.auth.signUp({ email, password });
+                if (signUpError) alert(signUpError.message); else alert("Check email for link!");
+            } else { showDashboard(); }
         }
 
-        loadRegistry();
+        function showDashboard() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('formSection').classList.remove('hidden');
+        }
+
+        function addGiftField() {
+            const input = document.createElement('input');
+            input.className = "gift-item w-full p-2 border rounded mt-2";
+            input.placeholder = "Gift Name";
+            document.getElementById('giftInputs').appendChild(input);
+        }
+
+        async function saveData() {
+            const gifts = Array.from(document.querySelectorAll('.gift-item')).map(i => i.value).filter(v => v);
+            const user = (await supabase.auth.getUser()).data.user;
+            
+            const { error } = await supabase.from('registries').upsert({
+                user_id: user.id,
+                Event_name: document.getElementById('eventName').value,
+                Event_Date: document.getElementById('eventDate').value,
+                upi_id: document.getElementById('upiId').value,
+                gifts_json: gifts
+            });
+
+            if (!error) {
+                const link = window.location.href.replace('index.html', '') + 'view.html?id=' + user.id;
+                const area = document.getElementById('linkArea');
+                area.classList.remove('hidden');
+                area.innerHTML = `Success! Link: <a href="${link}" class="text-blue-600 underline">${link}</a>`;
+            } else { alert(error.message); }
+        }
     </script>
 </body>
 </html>
