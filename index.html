@@ -1,98 +1,187 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Katnallu Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" />
+  <title>Katnallu Dashboard</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
+
 <body class="bg-gray-50 p-6">
-    <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold text-orange-600 mb-6">Katnallu Registry Builder</h1>
-        
-        <div id="authSection" class="space-y-4">
-            <input id="email" type="email" placeholder="Email" class="w-full p-2 border rounded">
-            <input id="password" type="password" placeholder="Password" class="w-full p-2 border rounded">
-            <button onclick="handleLogin()" class="w-full bg-orange-600 text-white py-2 rounded">Login / Sign Up</button>
-        </div>
 
-        <div id="formSection" class="hidden space-y-4">
-            <input id="eventName" type="text" placeholder="Event Name (e.g. My Wedding)" class="w-full p-2 border rounded">
-            <input id="eventDate" type="date" class="w-full p-2 border rounded">
-            <input id="upiId" type="text" placeholder="UPI ID (e.g. name@upi)" class="w-full p-2 border rounded">
-            
-            <div id="giftArea">
-                <label class="font-bold text-sm">Gifts You Want:</label>
-                <div id="giftInputs" class="space-y-2 mt-2">
-                    <input type="text" class="gift-item w-full p-2 border rounded" placeholder="Gift Name">
-                </div>
-                <button onclick="addGiftField()" class="text-orange-600 text-sm mt-2">+ Add Another Gift</button>
-            </div>
+  <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-md">
 
-            <button onclick="saveData()" class="w-full bg-green-600 text-white py-3 rounded font-bold">Save & Publish</button>
-            <div id="linkArea" class="mt-4 p-3 bg-green-100 hidden rounded border border-green-200"></div>
-        </div>
+    <h1 class="text-2xl font-bold text-orange-600 mb-6">
+      Katnallu Registry Builder
+    </h1>
+
+    <!-- LOGIN SECTION -->
+    <div id="authSection" class="space-y-4">
+      <input id="email" type="email" placeholder="Email"
+        class="w-full p-2 border rounded" />
+
+      <input id="password" type="password" placeholder="Password"
+        class="w-full p-2 border rounded" />
+
+      <button onclick="handleLogin()"
+        class="w-full bg-orange-600 text-white py-2 rounded">
+        Login / Sign Up
+      </button>
     </div>
 
-    <script>
-        const SUPABASE_URL = 'https://jdzewrfwsrtcemjwxqru.supabase.co';
-        const SUPABASE_KEY = 'PASTE_YOUR_ANON_KEY_HERE';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <!-- DASHBOARD SECTION -->
+    <div id="formSection" class="hidden space-y-4">
 
-        async function handleLogin() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    
-    // This part tries to sign the user up first
-    const { data, error } = await supabase.auth.signUp({ email, password });
+      <input id="eventName" type="text"
+        placeholder="Event Name (e.g. My Wedding)"
+        class="w-full p-2 border rounded" />
 
-    // If they already have an account, just log them in
-    if (error && error.message.includes("already registered")) {
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+      <input id="eventDate" type="date"
+        class="w-full p-2 border rounded" />
+
+      <input id="upiId" type="text"
+        placeholder="UPI ID (e.g. name@upi)"
+        class="w-full p-2 border rounded" />
+
+      <div>
+        <label class="font-bold text-sm">Gifts You Want</label>
+        <div id="giftInputs" class="space-y-2 mt-2">
+          <input type="text"
+            class="gift-item w-full p-2 border rounded"
+            placeholder="Gift Name" />
+        </div>
+
+        <button onclick="addGiftField()"
+          class="text-orange-600 text-sm mt-2">
+          + Add Another Gift
+        </button>
+      </div>
+
+      <button onclick="saveData()"
+        class="w-full bg-green-600 text-white py-3 rounded font-bold">
+        Save & Publish
+      </button>
+
+      <div id="linkArea"
+        class="hidden mt-4 p-3 bg-green-100 border border-green-300 rounded">
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    /* =============================
+       SUPABASE CONFIG
+    ============================== */
+
+    const SUPABASE_URL = "https://jdzewrfwsrtcemjwxqru.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY_HERE";
+
+    const supabaseClient = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    /* =============================
+       AUTH LOGIN / SIGNUP
+    ============================== */
+
+    async function handleLogin() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      // Try signup first
+      const { error } = await supabaseClient.auth.signUp({
+        email,
+        password
+      });
+
+      // If already exists → login
+      if (error && error.message.includes("already")) {
+        const { error: loginError } =
+          await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+
         if (loginError) {
-            alert("Login failed: " + loginError.message);
-        } else {
-            showDashboard(); // They are in!
+          alert(loginError.message);
+          return;
         }
-    } else if (error) {
-        alert("Error: " + error.message);
-    } else {
-        alert("Account created! You are now logged in.");
-        showDashboard(); // They are in!
+      } else if (error) {
+        alert(error.message);
+        return;
+      }
+
+      showDashboard();
     }
-}
-        }
 
-        function showDashboard() {
-            document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('formSection').classList.remove('hidden');
-        }
+    function showDashboard() {
+      document.getElementById("authSection").classList.add("hidden");
+      document.getElementById("formSection").classList.remove("hidden");
+    }
 
-        function addGiftField() {
-            const input = document.createElement('input');
-            input.className = "gift-item w-full p-2 border rounded mt-2";
-            input.placeholder = "Gift Name";
-            document.getElementById('giftInputs').appendChild(input);
-        }
+    /* =============================
+       GIFT INPUTS
+    ============================== */
 
-        async function saveData() {
-            const gifts = Array.from(document.querySelectorAll('.gift-item')).map(i => i.value).filter(v => v);
-            const user = (await supabase.auth.getUser()).data.user;
-            
-            const { error } = await supabase.from('registries').upsert({
-                user_id: user.id,
-                Event_name: document.getElementById('eventName').value,
-                Event_Date: document.getElementById('eventDate').value,
-                upi_id: document.getElementById('upiId').value,
-                gifts_json: gifts
-            });
+    function addGiftField() {
+      const input = document.createElement("input");
+      input.className = "gift-item w-full p-2 border rounded";
+      input.placeholder = "Gift Name";
+      document.getElementById("giftInputs").appendChild(input);
+    }
 
-            if (!error) {
-                const link = window.location.href.replace('index.html', '') + 'view.html?id=' + user.id;
-                const area = document.getElementById('linkArea');
-                area.classList.remove('hidden');
-                area.innerHTML = `Success! Link: <a href="${link}" class="text-blue-600 underline">${link}</a>`;
-            } else { alert(error.message); }
-        }
-    </script>
+    /* =============================
+       SAVE DATA
+    ============================== */
+
+    async function saveData() {
+      const gifts = Array.from(
+        document.querySelectorAll(".gift-item")
+      )
+        .map(i => i.value)
+        .filter(v => v);
+
+      const { data } = await supabaseClient.auth.getUser();
+      const user = data.user;
+
+      if (!user) {
+        alert("Not logged in");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("registries")
+        .insert({
+          user_id: user.id,
+          event_name: document.getElementById("eventName").value,
+          event_date: document.getElementById("eventDate").value,
+          upi_id: document.getElementById("upiId").value,
+          gifts_json: gifts
+        });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      const link =
+        window.location.origin +
+        "/view.html?id=" +
+        user.id;
+
+      const area = document.getElementById("linkArea");
+      area.classList.remove("hidden");
+      area.innerHTML =
+        `✅ Success!<br>Share this link:<br>
+         <a href="${link}" class="text-blue-600 underline">${link}</a>`;
+    }
+  </script>
+
 </body>
 </html>
