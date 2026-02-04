@@ -39,13 +39,27 @@
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function handleLogin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                const { error: signUpError } = await supabase.auth.signUp({ email, password });
-                if (signUpError) alert(signUpError.message); else alert("Check email for link!");
-            } else { showDashboard(); }
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    // This part tries to sign the user up first
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    // If they already have an account, just log them in
+    if (error && error.message.includes("already registered")) {
+        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+        if (loginError) {
+            alert("Login failed: " + loginError.message);
+        } else {
+            showDashboard(); // They are in!
+        }
+    } else if (error) {
+        alert("Error: " + error.message);
+    } else {
+        alert("Account created! You are now logged in.");
+        showDashboard(); // They are in!
+    }
+}
         }
 
         function showDashboard() {
