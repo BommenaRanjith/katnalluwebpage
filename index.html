@@ -2,245 +2,187 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Celebrate with Love 🎉</title>
+  <title>Katnallu – Celebrate Together 🎉</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #ffecd2, #fcb69f);
-      min-height: 100vh;
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #ffe6d5, #fff2cc);
+      display: flex;
+      justify-content: center;
       padding: 20px;
     }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-    }
-
-    .header {
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    }
-
-    .header h1 {
-      margin: 0;
-      color: #7a1045;
-    }
-
-    .header p {
-      margin: 8px 0;
-      color: #555;
-    }
-
-    .wishlist {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
-    }
-
     .card {
-      background: white;
-      border-radius: 16px;
-      padding: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      background: #fff;
+      max-width: 520px;
+      width: 100%;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    h1 {
       text-align: center;
-      transition: transform 0.2s;
+      color: #e91e63;
+      margin-bottom: 8px;
     }
 
-    .card:hover {
-      transform: translateY(-5px);
+    h2 {
+      text-align: center;
+      color: #673ab7;
+      margin-bottom: 20px;
     }
 
-    .card img {
+    input {
       width: 100%;
-      height: 180px;
-      object-fit: cover;
+      padding: 14px;
+      margin-bottom: 14px;
       border-radius: 12px;
-    }
-
-    .card h3 {
-      margin: 12px 0 5px;
-      color: #333;
-    }
-
-    .price {
-      font-size: 18px;
-      font-weight: bold;
-      color: #009688;
-    }
-
-    .custom-amount {
-      margin-top: 10px;
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    .pay-btn {
-      margin-top: 12px;
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #ff4e8a, #7a1045);
-      color: white;
-      border: none;
-      border-radius: 10px;
+      border: 1px solid #ddd;
       font-size: 16px;
+    }
+
+    .gift-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .gift-name {
+      flex: 2;
+    }
+
+    .gift-amount {
+      flex: 1;
+    }
+
+    .add-gift {
+      color: #e91e63;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: #1fa74a;
+      color: white;
+      font-size: 18px;
       cursor: pointer;
     }
 
-    .pay-btn:hover {
-      opacity: 0.9;
+    .gift-list {
+      margin-top: 20px;
+    }
+
+    .gift-item {
+      background: #f9f9f9;
+      padding: 14px;
+      border-radius: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .gift-item button {
+      width: auto;
+      padding: 10px 14px;
+      font-size: 14px;
+      background: #ff9800;
     }
 
     .footer {
-      margin-top: 40px;
       text-align: center;
-      color: #444;
+      margin-top: 20px;
       font-size: 14px;
+      color: #777;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
 
-    <div class="header">
-      <h1 id="occasionTitle">🎉 Celebration</h1>
-      <p id="occasionType"></p>
-      <p id="occasionDate"></p>
-      <p>💖 Thank you for being part of this special moment</p>
+  <div class="card">
+    <h1>🎉 Katnallu</h1>
+    <h2>Housewarming Celebration</h2>
+
+    <input id="occasionName" placeholder="Occasion (e.g. Gruha Pravesham)" />
+    <input id="eventDate" type="date" />
+    <input id="upiId" placeholder="Your UPI ID (e.g. 9618430914@ybl)" />
+
+    <h3>🎁 Gifts You Want</h3>
+
+    <div id="giftsContainer">
+      <div class="gift-row">
+        <input class="gift-name" placeholder="Gift name (TV 43 inch)" />
+        <input class="gift-amount" type="number" placeholder="₹ Amount" />
+      </div>
     </div>
 
-    <div class="wishlist" id="wishlist"></div>
+    <div class="add-gift" onclick="addGift()">+ Add Another Gift</div>
+
+    <button onclick="publish()">Save & Publish 🎊</button>
+
+    <div id="publishedGifts" class="gift-list"></div>
 
     <div class="footer">
-      Made with ❤️ using Katnallu
+      Share this page with your friends ❤️
     </div>
-
   </div>
 
-  <script>
-    /* =========================
-       SUPABASE CONFIG
-    ========================== */
-    const SUPABASE_URL = "https://YOUR_PROJECT_ID.supabase.co";
-    const SUPABASE_ANON_KEY = "YOUR_PUBLISHABLE_KEY";
+<script>
+  function addGift() {
+    const container = document.getElementById("giftsContainer");
+    const div = document.createElement("div");
+    div.className = "gift-row";
+    div.innerHTML = `
+      <input class="gift-name" placeholder="Gift name" />
+      <input class="gift-amount" type="number" placeholder="₹ Amount" />
+    `;
+    container.appendChild(div);
+  }
 
-    const supabase = supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
+  function publish() {
+    const occasion = document.getElementById("occasionName").value;
+    const upi = document.getElementById("upiId").value;
+    const gifts = document.querySelectorAll(".gift-row");
 
-    /* =========================
-       GET OCCASION ID
-    ========================== */
-    const params = new URLSearchParams(window.location.search);
-    const occasionId = params.get("occasion");
+    const list = document.getElementById("publishedGifts");
+    list.innerHTML = "";
 
-    if (!occasionId) {
-      alert("Invalid link ❌");
-      throw new Error("Occasion ID missing");
-    }
+    gifts.forEach(gift => {
+      const name = gift.querySelector(".gift-name").value;
+      const amount = gift.querySelector(".gift-amount").value;
 
-    /* =========================
-       LOAD OCCASION
-    ========================== */
-    async function loadOccasion() {
-      const { data, error } = await supabase
-        .from("occasions")
-        .select("*")
-        .eq("id", occasionId)
-        .single();
+      if (!name || !amount) return;
 
-      if (error) {
-        alert("Unable to load occasion");
-        console.error(error);
-        return;
-      }
+      const upiLink =
+        `upi://pay?pa=${upi}&pn=Katnallu&am=${amount}&cu=INR&tn=${encodeURIComponent(occasion + " - " + name)}`;
 
-      document.getElementById("occasionTitle").innerText =
-        "🎊 " + data.title;
+      const item = document.createElement("div");
+      item.className = "gift-item";
+      item.innerHTML = `
+        <div>
+          <strong>${name}</strong><br/>
+          ₹ ${amount}
+        </div>
+        <button onclick="window.location.href='${upiLink}'">
+          Contribute 🎁
+        </button>
+      `;
+      list.appendChild(item);
+    });
 
-      document.getElementById("occasionType").innerText =
-        "Occasion: " + data.type;
+    alert("🎉 Page is ready! Share this link with your friends.");
+  }
+</script>
 
-      document.getElementById("occasionDate").innerText =
-        "📅 " + data.event_date;
-
-      loadWishlist(data.upi_id, data.title);
-    }
-
-    /* =========================
-       LOAD WISHLIST
-    ========================== */
-    async function loadWishlist(upiId, occasionTitle) {
-      const { data, error } = await supabase
-        .from("wishlist_items")
-        .select("*")
-        .eq("occasion_id", occasionId);
-
-      if (error) {
-        alert("Unable to load wishlist");
-        console.error(error);
-        return;
-      }
-
-      const container = document.getElementById("wishlist");
-      container.innerHTML = "";
-
-      data.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML = `
-          <img src="${item.photo_url || 'https://via.placeholder.com/300'}">
-          <h3>${item.item_name}</h3>
-          <div class="price">₹${item.amount}</div>
-          <input class="custom-amount" type="number" placeholder="Enter custom amount (optional)">
-          <button class="pay-btn">Pay via UPI</button>
-        `;
-
-        card.querySelector(".pay-btn").onclick = () => {
-          const customAmount =
-            card.querySelector(".custom-amount").value;
-
-          const payAmount =
-            customAmount && customAmount > 0
-              ? customAmount
-              : item.amount;
-
-          payUPI(
-            upiId,
-            payAmount,
-            occasionTitle + " - " + item.item_name
-          );
-        };
-
-        container.appendChild(card);
-      });
-    }
-
-    /* =========================
-       UPI PAYMENT
-    ========================== */
-    function payUPI(upiId, amount, note) {
-      const upiUrl =
-        `upi://pay?pa=${upiId}&pn=Katnallu&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-
-      window.location.href = upiUrl;
-    }
-
-    loadOccasion();
-  </script>
 </body>
 </html>
