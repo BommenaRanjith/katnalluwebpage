@@ -3,93 +3,151 @@
 <head>
 <meta charset="UTF-8" />
 <title>Katnallu – Create Celebration</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body { font-family: Arial; background:#ffe9d6; }
-.card { width:420px; margin:40px auto; background:#fff; padding:20px; border-radius:16px; }
-input, button { width:100%; padding:10px; margin:8px 0; }
-.gift-row { display:flex; gap:8px; }
-.gift-row input { width:50%; }
-button { background:#28a745; color:#fff; border:none; border-radius:8px; cursor:pointer; }
-.add-btn { background:#ff9800; }
-.link-box { background:#f1f1f1; padding:10px; word-break:break-all; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #ffe5d0, #fff5ec);
+}
+
+.container {
+  max-width: 420px;
+  background: #fff;
+  margin: 40px auto;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+input, button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+input[type="file"] {
+  padding: 8px;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+}
+
+.btn-green {
+  background: #28a745;
+  color: white;
+  font-size: 16px;
+}
+
+.btn-orange {
+  background: orange;
+  color: white;
+}
+
+.gift-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.gift-row input {
+  flex: 1;
+}
+
+.link-box {
+  background: #f3f3f3;
+  padding: 10px;
+  border-radius: 10px;
+  word-break: break-all;
+  margin-top: 10px;
+  display: none;
+}
 </style>
 </head>
 
 <body>
-<div class="card">
-<h2>🎉 Create Celebration</h2>
 
-<input id="occasion" placeholder="Occasion name">
-<input id="date" type="date">
-<input id="upi" placeholder="UPI ID">
-<input id="photo" type="file">
+<div class="container">
+  <h2>🎉 Create Celebration</h2>
 
-<h3>🎁 Gifts</h3>
-<div id="gifts"></div>
+  <input id="occasion" placeholder="Occasion (Birthday, Housewarming)" />
+  <input id="date" type="date" />
+  <input id="upi" placeholder="Your UPI ID" />
+  <input id="photo" type="file" accept="image/*" />
 
-<button class="add-btn" onclick="addGift()">+ Add Gift</button>
-<button onclick="saveCelebration()">Save & Generate Link 🔗</button>
+  <h3>🎁 Gifts</h3>
+  <div id="giftsContainer"></div>
 
-<div id="result"></div>
+  <button class="btn-orange" onclick="addGift()">+ Add Gift</button>
+
+  <button class="btn-green" onclick="generateLink()">Save & Generate Link 🔗</button>
+
+  <div class="link-box" id="linkBox"></div>
 </div>
 
 <script>
-const supabase = supabase.createClient(
-  "https://jdzerwfwrsctemjwxqru.supabase.co",
-  "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
-);
+const giftsContainer = document.getElementById("giftsContainer");
 
-function addGift(){
-  const row = document.createElement("div");
-  row.className = "gift-row";
-  row.innerHTML = `
-    <input placeholder="Gift name">
-    <input type="number" placeholder="Amount">
+function addGift(name = "", amount = "") {
+  const div = document.createElement("div");
+  div.className = "gift-row";
+  div.innerHTML = `
+    <input placeholder="Gift name" value="${name}">
+    <input type="number" placeholder="Amount" value="${amount}">
   `;
-  document.getElementById("gifts").appendChild(row);
+  giftsContainer.appendChild(div);
 }
 
-addGift(); // first row
+// Add first gift by default
+addGift();
 
-async function saveCelebration(){
+function generateLink() {
   const occasion = document.getElementById("occasion").value;
   const date = document.getElementById("date").value;
   const upi = document.getElementById("upi").value;
-  const photo = document.getElementById("photo").files[0];
 
-  const fileName = Date.now()+"_"+photo.name;
-  await supabase.storage.from("celebration-images").upload(fileName, photo);
-
-  const image_url = supabase.storage
-    .from("celebration-images")
-    .getPublicUrl(fileName).data.publicUrl;
-
-  const { data: celebration } = await supabase
-    .from("celebrations")
-    .insert({ occasion, event_date: date, upi, image_url })
-    .select()
-    .single();
-
-  const giftRows = document.querySelectorAll(".gift-row");
-  for (let row of giftRows){
-    const name = row.children[0].value;
-    const amount = row.children[1].value;
-    if(name && amount){
-      await supabase.from("gifts").insert({
-        celebration_id: celebration.id,
-        name,
-        amount
-      });
-    }
+  if (!occasion || !date || !upi) {
+    alert("Please fill all required fields");
+    return;
   }
 
-  const link = `${location.origin}${location.pathname.replace("index.html","")}contribute.html?id=${celebration.id}`;
-  document.getElementById("result").innerHTML = `
-    <p>🎉 Share this link:</p>
-    <div class="link-box">${link}</div>
-  `;
+  const gifts = [];
+  document.querySelectorAll(".gift-row").forEach(row => {
+    const inputs = row.querySelectorAll("input");
+    if (inputs[0].value && inputs[1].value) {
+      gifts.push({
+        name: inputs[0].value,
+        amount: inputs[1].value
+      });
+    }
+  });
+
+  const data = {
+    occasion,
+    date,
+    upi,
+    gifts
+  };
+
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const link = `${window.location.origin}${window.location.pathname.replace("index.html","")}contribute.html?data=${encoded}`;
+
+  const box = document.getElementById("linkBox");
+  box.style.display = "block";
+  box.innerHTML = `<b>Share this link:</b><br>${link}`;
 }
 </script>
+
 </body>
 </html>
