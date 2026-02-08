@@ -1,187 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Katnallu – Celebrate Together 🎉</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Katnallu – Create Celebration 🎉</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     body {
-      margin: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: linear-gradient(135deg, #ffe6d5, #fff2cc);
+      font-family: Arial;
+      background: linear-gradient(135deg,#ffe6d5,#fff2cc);
       display: flex;
       justify-content: center;
       padding: 20px;
     }
-
     .card {
       background: #fff;
+      width: 100%;
       max-width: 520px;
-      width: 100%;
-      border-radius: 24px;
       padding: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      border-radius: 22px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.15);
     }
-
-    h1 {
-      text-align: center;
-      color: #e91e63;
-      margin-bottom: 8px;
-    }
-
-    h2 {
-      text-align: center;
-      color: #673ab7;
-      margin-bottom: 20px;
-    }
-
+    h1 { text-align:center; color:#e91e63 }
     input {
-      width: 100%;
-      padding: 14px;
-      margin-bottom: 14px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      font-size: 16px;
+      width:100%;
+      padding:14px;
+      margin-bottom:12px;
+      border-radius:12px;
+      border:1px solid #ddd;
+      font-size:16px;
     }
-
     .gift-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
+      display:flex;
+      gap:10px;
+      margin-bottom:10px;
     }
-
-    .gift-name {
-      flex: 2;
-    }
-
-    .gift-amount {
-      flex: 1;
-    }
-
-    .add-gift {
-      color: #e91e63;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 20px;
-    }
-
+    .gift-row input { flex:1 }
     button {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 14px;
-      background: #1fa74a;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
+      width:100%;
+      padding:16px;
+      border:none;
+      border-radius:14px;
+      background:#1fa74a;
+      color:#fff;
+      font-size:18px;
+      cursor:pointer;
     }
-
-    .gift-list {
-      margin-top: 20px;
-    }
-
-    .gift-item {
-      background: #f9f9f9;
-      padding: 14px;
-      border-radius: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .gift-item button {
-      width: auto;
-      padding: 10px 14px;
-      font-size: 14px;
-      background: #ff9800;
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 14px;
-      color: #777;
-    }
+    .add { color:#e91e63; cursor:pointer; margin-bottom:16px }
   </style>
 </head>
 
 <body>
+<div class="card">
 
-  <div class="card">
-    <h1>🎉 Katnallu</h1>
-    <h2>Housewarming Celebration</h2>
+  <h1>🎉 Katnallu</h1>
 
-    <input id="occasionName" placeholder="Occasion (e.g. Gruha Pravesham)" />
-    <input id="eventDate" type="date" />
-    <input id="upiId" placeholder="Your UPI ID (e.g. 9618430914@ybl)" />
+  <input id="occasion" placeholder="Occasion Name" />
+  <input id="date" type="date" />
+  <input id="upi" placeholder="Your UPI ID" />
 
-    <h3>🎁 Gifts You Want</h3>
+  <label>🏠 House Photo</label>
+  <input type="file" id="photo" accept="image/*" />
 
-    <div id="giftsContainer">
-      <div class="gift-row">
-        <input class="gift-name" placeholder="Gift name (TV 43 inch)" />
-        <input class="gift-amount" type="number" placeholder="₹ Amount" />
-      </div>
-    </div>
+  <h3>🎁 Gifts</h3>
 
-    <div class="add-gift" onclick="addGift()">+ Add Another Gift</div>
-
-    <button onclick="publish()">Save & Publish 🎊</button>
-
-    <div id="publishedGifts" class="gift-list"></div>
-
-    <div class="footer">
-      Share this page with your friends ❤️
+  <div id="gifts">
+    <div class="gift-row">
+      <input placeholder="Gift name" />
+      <input placeholder="Amount" type="number" />
     </div>
   </div>
 
+  <div class="add" onclick="addGift()">+ Add Another Gift</div>
+
+  <button onclick="createLink()">Save & Generate Link 🔗</button>
+
+</div>
+
 <script>
-  function addGift() {
-    const container = document.getElementById("giftsContainer");
-    const div = document.createElement("div");
-    div.className = "gift-row";
-    div.innerHTML = `
-      <input class="gift-name" placeholder="Gift name" />
-      <input class="gift-amount" type="number" placeholder="₹ Amount" />
-    `;
-    container.appendChild(div);
-  }
+function addGift() {
+  document.getElementById("gifts").insertAdjacentHTML("beforeend", `
+    <div class="gift-row">
+      <input placeholder="Gift name" />
+      <input placeholder="Amount" type="number" />
+    </div>
+  `);
+}
 
-  function publish() {
-    const occasion = document.getElementById("occasionName").value;
-    const upi = document.getElementById("upiId").value;
-    const gifts = document.querySelectorAll(".gift-row");
+function createLink() {
+  const reader = new FileReader();
+  const file = document.getElementById("photo").files[0];
 
-    const list = document.getElementById("publishedGifts");
-    list.innerHTML = "";
+  reader.onload = () => {
+    const data = {
+      occasion: occasion.value,
+      date: date.value,
+      upi: upi.value,
+      photo: reader.result,
+      gifts: [...document.querySelectorAll(".gift-row")].map(r => ({
+        name: r.children[0].value,
+        amount: r.children[1].value
+      }))
+    };
 
-    gifts.forEach(gift => {
-      const name = gift.querySelector(".gift-name").value;
-      const amount = gift.querySelector(".gift-amount").value;
+    const encoded = encodeURIComponent(JSON.stringify(data));
+    const link = `contribute.html?data=${encoded}`;
+    window.location.href = link;
+  };
 
-      if (!name || !amount) return;
-
-      const upiLink =
-        `upi://pay?pa=${upi}&pn=Katnallu&am=${amount}&cu=INR&tn=${encodeURIComponent(occasion + " - " + name)}`;
-
-      const item = document.createElement("div");
-      item.className = "gift-item";
-      item.innerHTML = `
-        <div>
-          <strong>${name}</strong><br/>
-          ₹ ${amount}
-        </div>
-        <button onclick="window.location.href='${upiLink}'">
-          Contribute 🎁
-        </button>
-      `;
-      list.appendChild(item);
-    });
-
-    alert("🎉 Page is ready! Share this link with your friends.");
-  }
+  if (file) reader.readAsDataURL(file);
+}
 </script>
 
 </body>
